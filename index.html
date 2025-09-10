@@ -5,42 +5,22 @@
   <title>Safe Mode SOS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f4f4f4;
-      padding: 30px;
-    }
-    button {
-      font-size: 20px;
-      padding: 15px 30px;
-      margin: 10px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      background: #e63946;
-      color: white;
-    }
-    button:hover {
-      background: #d62828;
-    }
-    #status {
-      margin-top: 20px;
-      font-weight: bold;
-    }
+    body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; padding: 30px; }
+    button { font-size: 20px; padding: 15px 30px; margin: 10px; border: none; border-radius: 10px; cursor: pointer; background: #e63946; color: white; }
+    button:hover { background: #d62828; }
+    #status { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
   <h1>🚨 Safe Mode SOS</h1>
   <p>Say <b>"HELP"</b> or press the button to trigger SOS.</p>
-
   <button id="sosBtn">Send SOS</button>
   <p id="status">🎤 Listening...</p>
 
   <script>
-    const backendUrl = "https://safe-app.onrender.com/trigger-sos"; // replace with your Render URL
+    const backendUrl = "http://localhost:5000/trigger-sos"; // Change to your deployed URL if needed
 
-    // --- Function to trigger SOS via backend ---
+    // Manual SOS trigger
     async function sendSOS() {
       try {
         let res = await fetch(backendUrl, { method: "POST" });
@@ -55,12 +35,12 @@
       }
     }
 
-    // --- Button manual SOS ---
     document.getElementById("sosBtn").addEventListener("click", sendSOS);
 
-    // --- Speech Recognition ---
-    if ("webkitSpeechRecognition" in window) {
-      const recognition = new webkitSpeechRecognition();
+    // Voice trigger
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "en-US";
@@ -70,8 +50,6 @@
         for (let i = event.resultIndex; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
         }
-        console.log("Heard:", transcript);
-
         if (transcript.toLowerCase().includes("help")) {
           document.getElementById("status").innerText = "🆘 'HELP' detected!";
           sendSOS();
@@ -79,7 +57,6 @@
       };
 
       recognition.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
         document.getElementById("status").innerText = "⚠️ Mic error: " + event.error;
       };
 
